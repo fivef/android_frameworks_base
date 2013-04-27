@@ -2538,8 +2538,14 @@ public class AudioService extends IAudioService.Stub implements OnFinished {
                     return AudioSystem.STREAM_MUSIC;
                 } else {
                     if (DEBUG_VOL)
-                        Log.v(TAG, "getActiveStreamType: Forcing STREAM_RING b/c default");
-                    return AudioSystem.STREAM_RING;
+                        Log.v(TAG, "getActiveStreamType: Forcing STREAM_RING or STREAM_MUSIC depending on MEDIA_VOLUME_DEFAULT setting.");
+                    
+                    if (Settings.System.getInt(mContext.getContentResolver(),
+                            Settings.System.MEDIA_VOLUME_DEFAULT_ENABLED, 0) == 1) {
+                        return AudioSystem.STREAM_MUSIC;
+                    }else{
+                        return AudioSystem.STREAM_RING;
+                    }
                 }
             } else if (AudioSystem.isStreamActive(AudioSystem.STREAM_MUSIC, 0)) {
                 if (DEBUG_VOL)

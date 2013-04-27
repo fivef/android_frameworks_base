@@ -1861,6 +1861,15 @@ public final class Settings {
          * @hide
          */
         public static final String VOLUME_ADJUST_SOUNDS_ENABLED = "volume_adjust_sounds_enabled";
+        
+        
+        /**
+         * Media volume as default enabled, This sets the STREAM_MUSIC as standard stream instead of STREAM_RING.
+         * This enables changing the music volume e.g. on home screen with the volume rocker.
+         * Defaults to 0 - STREAM_RING is standard stream
+         * @hide
+         */
+        public static final String MEDIA_VOLUME_DEFAULT_ENABLED = "media_volume_default_enabled";
 
         /**
          * Ability to enable/disable Daul pane prefs.
