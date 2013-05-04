@@ -22,6 +22,10 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.database.ContentObserver;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.hardware.input.InputManager;
 import android.os.Handler;
 import android.os.IVibratorService;
@@ -56,6 +60,14 @@ public class VibratorService extends IVibratorService.Stub
     private final Context mContext;
     private final PowerManager.WakeLock mWakeLock;
     private InputManager mIm;
+
+    // Proximity sensor stuff
+    private SensorManager mySensorManager;
+    private Sensor myProximitySensor;
+    private SensorEventListener proximitySensorEventListener;
+    private IBinder vibrateToken;
+    private long[] vibratePattern;
+    private int vibrateRepeat;
 
     volatile VibrateThread mThread;
 
@@ -137,6 +149,8 @@ public class VibratorService extends IVibratorService.Stub
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_SCREEN_OFF);
         context.registerReceiver(mIntentReceiver, filter);
+        
+        initProximitySensor();
     }
 
     public void systemReady() {
@@ -224,6 +238,20 @@ public class VibratorService extends IVibratorService.Stub
     }
 
     public void vibratePattern(long[] pattern, int repeat, IBinder token) {
+        vibratePattern = pattern;
+        vibrateRepeat = repeat;
+        vibrateToken = token;
+        
+        executeVibratePatternOriginalIfProximityNEAR();
+        
+    }
+
+    public void vibratePatternOriginal() {
+        
+        long[] pattern = vibratePattern;
+        int repeat = vibrateRepeat;
+        IBinder token = vibrateToken;
+        
         if (mContext.checkCallingOrSelfPermission(android.Manifest.permission.VIBRATE)
                 != PackageManager.PERMISSION_GRANTED) {
             throw new SecurityException("Requires VIBRATE permission");
@@ -274,6 +302,94 @@ public class VibratorService extends IVibratorService.Stub
         }
         finally {
             Binder.restoreCallingIdentity(identity);
+        }
+    }
+    
+    private void initProximitySensor(){
+        Slog.d(TAG, "startSensorManager");
+        
+        mySensorManager = (SensorManager) mContext
+                .getSystemService(Context.SENSOR_SERVICE);
+    
+        if(mySensorManager != null){
+        myProximitySensor = mySensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
+        }else{
+            Slog.d(TAG, "mySensorManger == null");
+            return;
+        }
+    
+        proximitySensorEventListener = new SensorEventListener() {
+    
+            @Override
+            public void onAccuracyChanged(Sensor sensor, int accuracy) {
+    
+            }
+    
+            @Override
+            public void onSensorChanged(SensorEvent event) {
+    
+                if (event.sensor.getType() == Sensor.TYPE_PROXIMITY) {
+                    float distance = event.values[0];
+    
+                    /*distance can be 0 or sensor's maximum or the distance the
+                     object is away depending on the sensor.
+                     If distance < 1 the sensor here is considered as covered.
+                    */
+                    
+                    if (distance < 1) {
+                        Slog.d(TAG, "vibrate");
+                        vibratePatternOriginal();
+                    }else{
+                        Slog.d(TAG, "dont vibrate");
+                    }
+                }
+            }
+        };
+    }
+
+    private void executeVibratePatternOriginalIfProximityNEAR() {
+        
+        /*
+         * The proximity sensor is not intended for polling the sate.
+         * Here polling is achieved by registering a listener with the SensorManager
+         * and then wait WAIT_TIME_UNTIL_PROXIMITY_VALUE_IS_ACCEPTED (150ms) before
+         * unregistering it. Usually after about 70ms the sensor delivers a correct value.
+         * (Tested on i9300)
+         */
+        
+       
+    
+        Slog.d(TAG, "registerProximitySensorListener");
+        
+        mySensorManager.registerListener(proximitySensorEventListener,
+                myProximitySensor,
+                SensorManager.SENSOR_DELAY_GAME);
+        
+        Thread waitThread = new WaitForProximityStateThread();
+        waitThread.start();
+    
+    }
+    private class WaitForProximityStateThread extends Thread {
+    
+        private final static long WAIT_TIME_UNTIL_PROXIMITY_VALUE_IS_ACCEPTED = 150;
+
+        WaitForProximityStateThread() {
+    
+        }
+    
+        public void run() {
+            //Process.setThreadPriority(Process.THREAD_PRIORITY_URGENT_DISPLAY);
+            
+            try {
+                Thread.sleep(WAIT_TIME_UNTIL_PROXIMITY_VALUE_IS_ACCEPTED );
+            } catch (InterruptedException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            
+            mySensorManager.unregisterListener(proximitySensorEventListener);
+            Slog.d(TAG, "unregister ProximitySensorListener");
+    
         }
     }
 
