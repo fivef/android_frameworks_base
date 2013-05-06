@@ -56,19 +56,9 @@ import android.view.WindowOrientationListener;
 import com.android.internal.widget.ILockSettings;
 
 import java.net.URISyntaxException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-
-//////////////////////////////////////////////////
-import android.content.pm.IPackageManager;
-import android.os.ServiceManager;
-import android.os.Process;
-import java.util.Random;
-
-import android.privacy.IPrivacySettingsManager;
-import android.privacy.PrivacySettings;
-import android.privacy.PrivacySettingsManager;
-//////////////////////////////////////////////////
 
 /**
  * The Settings provider contains global system-level device preferences.
@@ -1081,6 +1071,38 @@ public final class Settings {
                 return Global.getUriFor(Global.CONTENT_URI, name);
             }
             return getUriFor(CONTENT_URI, name);
+        }
+
+        /**
+         * @hide
+         * Methods to handle storing and retrieving arraylists
+         *
+         * @param cr The ContentResolver to access.
+         * @param name The name of the setting to modify.
+         * @param value The new value for the setting.
+         * @return true if the value was set, false on database errors
+         */
+        public static boolean putArrayList(ContentResolver cr, String name, ArrayList<String> list) {
+            if (list != null && list.size() > 0) {
+                String joined = TextUtils.join("|",list);
+                return putString(cr, name, joined);
+            } else {
+                return putString(cr, name, "");
+            }
+        }
+
+        public static ArrayList<String> getArrayList(ContentResolver cr, String name) {
+            String v = getString(cr, name);
+            ArrayList<String> list = new ArrayList<String>();
+            if (v != null) {
+              if (!v.isEmpty()){
+                String[] split = v.split("\\|");
+                for (String i : split) {
+                    list.add(i);
+	        }
+              }
+            }
+            return list;
         }
 
         /**
@@ -4050,6 +4072,206 @@ public final class Settings {
         public static final String LOCKSCREEN_USE_WIDGET_CONTAINER_CAROUSEL = "lockscreen_use_widget_container_carousel";
 
         /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_TARGETS_SHORT = new String[] {
+            "ribbon_targets_short_lockscreen",
+            "ribbon_targets_short_notification",
+            "ribbon_targets_short_swipe",
+            "ribbon_targets_short_quicksettings",
+            "ribbon_targets_short_swipe_right",
+            "ribbon_targets_short_swipe_bottom",
+        };
+
+        /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_TARGETS_LONG = new String[] {
+            "ribbon_targets_long_lockscreen",
+            "ribbon_targets_long_notification",
+            "ribbon_targets_long_swipe",
+            "ribbon_targets_long_quicksettings",
+            "ribbon_targets_long_swipe_right",
+            "ribbon_targets_long_swipe_bottom",
+        };
+
+        /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_TARGETS_ICONS = new String[] {
+            "ribbon_targets_icons_lockscreen",
+            "ribbon_targets_icons_notification",
+            "ribbon_targets_icons_swipe",
+            "ribbon_targets_icons_quicksettings",
+            "ribbon_targets_icons_swipe_right",
+            "ribbon_targets_icons_swipe_bottom",
+        };
+
+        /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] ENABLE_RIBBON_TEXT = new String[] {
+            "ribbon_text_lockscreen",
+            "ribbon_text_notification",
+            "ribbon_text_swipe",
+            "ribbon_text_quicksettings",
+            "ribbon_text_swipe_right",
+            "ribbon_text_swipe_bottom",
+        };
+
+        /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_TEXT_COLOR = new String[] {
+            "color_text_lockscreen",
+            "color_text_notification",
+            "color_text_swipe",
+            "color_text_quicksettings",
+            "color_text_swipe_right",
+            "color_text_swipe_bottom",
+        };
+
+        /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_ICON_SIZE = new String[] {
+            "ribbon_icon_lockscreen",
+            "ribbon_icon_notification",
+            "ribbon_icon_swipe",
+            "ribbon_icon_quicksettings",
+            "ribbon_icon_swipe_right",
+            "ribbon_icon_swipe_bottom",
+        };
+
+        public static final String[] ENABLE_RIBBON_LOCATION = new String[] {
+            "ribbon_swipe_bottom",
+            "ribbon_swipe_left",
+            "ribbon_swipe_right",
+        };
+
+        /**
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_ICON_SPACE = new String[] {
+            "ribbon_icon_lockscreen_space",
+            "ribbon_icon_notification_space",
+            "ribbon_icon_swipe_space_left",
+            "ribbon_icon_quicksettings_space",
+            "ribbon_icon_swipe_space_right",
+            "ribbon_icon_swipe_space_bottom",
+        };
+
+        /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_ICON_VIBRATE = new String[] {
+            "ribbon_icon_lockscreen_vibrate",
+            "ribbon_icon_notification_vibrate",
+            "ribbon_icon_swipe_vibrate",
+            "ribbon_icon_quicksettings_vibrate",
+            "ribbon_icon_swipe_vibrate_right",
+            "ribbon_icon_swipe_vibrate_bottom",
+        };
+
+        /**
+         * Ribbon Targets
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_ICON_COLORIZE = new String[] {
+            "ribbon_icon_lockscreen_colorize",
+            "ribbon_icon_notification_colorize",
+            "ribbon_icon_swipe_colorize",
+            "ribbon_icon_quicksettings_colorize",
+            "ribbon_icon_swipe_colorize_right",
+            "ribbon_icon_swipe_colorize_bottom",
+        };
+
+        /**
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_HIDE_TIMEOUT = new String[] {
+            "ribbon_hide_timeout_left",
+            "ribbon_hide_timeout_right",
+            "ribbon_hide_timeout_bottom",
+        };
+
+        /**
+         *
+         * @hide
+         */
+        public static final String[] SWIPE_RIBBON_OPACITY = new String[] {
+            "swipe_ribbon_opacity_left",
+            "swipe_ribbon_opacity_right",
+            "swipe_ribbon_opacity_bottom",
+        };
+
+        /**
+         *
+         * @hide
+         */
+        public static final String[] SWIPE_RIBBON_COLOR = new String[] {
+            "swipe_ribbon_color_left",
+            "swipe_ribbon_color_right",
+            "swipe_ribbon_color_bottom",
+        };
+
+        /**
+         *
+         * @hide
+         */
+        public static final String RIBBON_DRAG_HANDLE_WEIGHT = "ribbon_drag_handle_weight";
+
+        /**
+         *
+         * @hide
+         */
+        public static final String RIBBON_DRAG_HANDLE_LOCATION = "ribbon_drag_handle_location";
+
+        /**
+         *
+         * @hide
+         */
+        public static final String[] RIBBON_ICON_LOCATION = new String[] {
+            "ribbon_icon_location_left",
+            "ribbon_icon_location_right",
+        };
+
+        /**
+         *
+         * @hide
+         */
+        public static final String SWIPE_RIBBON_VIBRATE = "swipe_ribbon_vibrate";
+
+        /**
+         *
+         * @hide
+         */
+        public static final String RIBBON_DRAG_HANDLE_HEIGHT = "ribbon_drag_handle_height";
+
+        /**
+         *
+         * @hide
+         */
+        public static final String RIBBON_DRAG_HANDLE_OPACITY = "ribbon_drag_handle_opacity";
+
+        /**
          * enable and disable fast toggle in settings
          *
          * @hide
@@ -4678,46 +4900,6 @@ public final class Settings {
                 }
             }
 
-            
-         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-         //BEGIN PRIVACY
-         if(name.equals(ANDROID_ID)){ //normally it should work with sNameValueCache.getString instead of sLockSettings
-  	       initiate();
-  	       try{
-  		       if(pSetMan == null) pSetMan = new PrivacySettingsManager(context, IPrivacySettingsManager.Stub.asInterface(ServiceManager.getService("privacy")));
-  		       if(mPm == null) mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
-  		       PrivacySettings settings = null;
-  		       final String[] packages = getPackageName();
-  		       if(packages != null && packages.length > 0){
-  			       for(int i = 0; i < packages.length; i++){
-  				       settings = pSetMan.getSettings(packages[i]);
-  				       if(settings != null && settings.getAndroidIdSetting() != PrivacySettings.REAL){
-  					       String output = settings.getAndroidID();
-  					       if(output != null){
-  						       pSetMan.notification(packages[i], 0, settings.getAndroidIdSetting(), PrivacySettings.DATA_ANDROID_ID, output, null);
-  						       return output;
-  					       } else{
-  						       pSetMan.notification(packages[i], 0, settings.getAndroidIdSetting(), PrivacySettings.DATA_ANDROID_ID, "q4a5w896ay21dr46", null);
-  						       return "q4a5w896ay21dr46"; //we can not pull out empty android id, because we get bootlops then
-  					       }
-  				       }
-  				       if(i == packages.length - 1) //package is allowed to get android id
-  					       pSetMan.notification(packages[packages.length - 1], 0, PrivacySettings.REAL, PrivacySettings.DATA_ANDROID_ID, null, null);
-  				       settings = null;
-  			       }
-  		       } else{
-  			       pSetMan.notification(packages[packages.length - 1], 0, PrivacySettings.REAL, PrivacySettings.DATA_ANDROID_ID, null, null);
-  		       }
-  	       }
-  	       catch (Exception e){
-  		       e.printStackTrace();
-  		       Log.e(PRIVACY_TAG,"Got exception in  getString()");
-               }
-         }
-         //END PRIVACY
-         //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
             return sNameValueCache.getStringForUser(resolver, name, userHandle);
         }
 
@@ -5018,71 +5200,7 @@ public final class Settings {
                 int userHandle) {
             return putStringForUser(cr, name, Float.toString(value), userHandle);
         }
-        
-		/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//BEGIN PRIVACY 
-		
-		private static final String PRIVACY_TAG = "PM,SecureSettings";
-		private static Context context;
-		
-		private static PrivacySettingsManager pSetMan;
-		
-		private static boolean privacyMode = false;
-		
-		private static IPackageManager mPm;
-		
-		//END PRIVACY 		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		
-		
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		//BEGIN PRIVACY
-		
-		/**
-		* {@hide}
-		* @return package names of current process which is using this object or null if something went wrong
-		*/
-		private static String[] getPackageName(){
-			try{
-				if(mPm != null){
-					int uid = Process.myUid();
-					final String[] package_names = mPm.getPackagesForUid(uid);
-					return package_names;
-				}
-				else{
-					mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
-					int uid = Process.myUid();
-					final String[] package_names = mPm.getPackagesForUid(uid);
-					return package_names;
-				}
-			}
-			catch(Exception e){
-				e.printStackTrace();
-				Log.e(PRIVACY_TAG,"something went wrong with getting package name");
-				return null;
-			}
-		}
-		/**
-		* {@hide}
-		* This method sets up all variables which are needed for privacy mode! It also writes to privacyMode, if everything was successfull or not! 
-		* -> privacyMode = true ok! otherwise false!
-		*/
-		private static void initiate(){
-			try{
-				context = null;
-				pSetMan = new PrivacySettingsManager(context, IPrivacySettingsManager.Stub.asInterface(ServiceManager.getService("privacy")));
-				mPm = IPackageManager.Stub.asInterface(ServiceManager.getService("package"));
-				privacyMode = true;
-			}
-			catch(Exception e){
-				e.printStackTrace();
-				Log.e(PRIVACY_TAG, "Something went wrong with initalize variables");
-				privacyMode = false;
-			}
-		}
-		//END PRIVACY
-		//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        
+
         /**
          * @deprecated Use {@link android.provider.Settings.Global#DEVELOPMENT_SETTINGS_ENABLED}
          * instead
